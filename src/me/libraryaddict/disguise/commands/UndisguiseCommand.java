@@ -20,25 +20,16 @@ public class UndisguiseCommand implements CommandExecutor
             return true;
         }
 
-        if (sender.hasPermission("libsdisguises.undisguise"))
+        if (DisguiseAPI.isDisguised((Entity) sender))
         {
-            if (DisguiseAPI.isDisguised((Entity) sender))
-            {
-                if (DisguiseAPI.isDisguised((Entity) sender))
-                {
-                    DisguiseAPI.undisguiseToAll((Player) sender);
-                    sender.sendMessage(LibsMsg.UNDISG.get());
-                }
-                else
-                {
-                    sender.sendMessage(LibsMsg.NOT_DISGUISED.get());
-                }
-            }
-            else
-            {
-                sender.sendMessage(LibsMsg.NO_PERM.get());
-            }
+            DisguiseAPI.undisguiseToAll((Player) sender);
+            sender.sendMessage(LibsMsg.UNDISG.get());
         }
+        else
+        {
+            sender.sendMessage(LibsMsg.NOT_DISGUISED.get());
+        }
+
         return true;
     }
 }
