@@ -1,4 +1,4 @@
-package me.libraryaddict.disguise;
+package me.totalfreedom.libsdisguise;
 
 import java.util.Arrays;
 import java.util.List;

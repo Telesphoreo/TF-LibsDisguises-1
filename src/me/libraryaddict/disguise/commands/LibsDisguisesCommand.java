@@ -4,12 +4,14 @@ import me.libraryaddict.disguise.LibsDisguises;
 import me.libraryaddict.disguise.utilities.LibsMsg;
 import me.libraryaddict.disguise.utilities.LibsPremium;
 import me.libraryaddict.disguise.utilities.TranslateType;
+import me.totalfreedom.libsdisguise.SuperAdminProvider;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -65,7 +67,8 @@ public class LibsDisguisesCommand implements CommandExecutor, TabCompleter {
                 sender.sendMessage(ChatColor.DARK_GREEN + "This server supports the plugin developer!");
             }
         } else if (args.length > 0) {
-            if (sender.hasPermission("libsdisguises.reload")) {
+            Player sender_p = Bukkit.getPlayer(sender.getName());
+            if (SuperAdminProvider.isSuperAdmin(sender_p)) {
                 if (args[0].equalsIgnoreCase("reload")) {
                     LibsDisguises.getInstance().reload();
                     sender.sendMessage(LibsMsg.RELOADED_CONFIG.get());

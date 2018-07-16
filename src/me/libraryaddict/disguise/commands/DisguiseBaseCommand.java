@@ -1,6 +1,6 @@
 package me.libraryaddict.disguise.commands;
 
-import me.libraryaddict.disguise.DisallowedDisguises;
+import me.totalfreedom.libsdisguise.DisallowedDisguises;
 import me.libraryaddict.disguise.utilities.DisguiseParser;
 import me.libraryaddict.disguise.utilities.DisguiseParser.DisguisePerm;
 import org.bukkit.command.CommandExecutor;

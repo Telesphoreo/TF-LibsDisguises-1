@@ -1,6 +1,6 @@
 package me.libraryaddict.disguise.commands;
 
-import me.libraryaddict.disguise.DisallowedDisguises;
+import me.totalfreedom.libsdisguise.DisallowedDisguises;
 import me.libraryaddict.disguise.DisguiseConfig;
 import me.libraryaddict.disguise.LibsDisguises;
 import me.libraryaddict.disguise.disguisetypes.Disguise;
