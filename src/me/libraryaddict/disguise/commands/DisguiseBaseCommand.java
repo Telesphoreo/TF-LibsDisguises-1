@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import me.totalfreedom.libsdisguise.DisallowedDisguises;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -59,7 +60,6 @@ public abstract class DisguiseBaseCommand implements CommandExecutor {
                 allowedDisguises.add(type.toReadable().replaceAll(" ", "_"));
             }
         }
-    }
 
         Collections.sort(allowedDisguises, String.CASE_INSENSITIVE_ORDER);
 
