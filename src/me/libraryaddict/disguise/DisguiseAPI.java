@@ -7,7 +7,6 @@ import me.libraryaddict.disguise.disguisetypes.watchers.HorseWatcher;
 import me.libraryaddict.disguise.disguisetypes.watchers.LivingWatcher;
 import me.libraryaddict.disguise.utilities.DisguiseUtilities;
 import me.libraryaddict.disguise.utilities.ReflectionManager;
-import me.totalfreedom.libsdisguise.DisallowedDisguises;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.entity.*;
@@ -23,172 +22,127 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class DisguiseAPI
-{
+public class DisguiseAPI {
     private static int selfDisguiseId = ReflectionManager.getNewEntityId(true);
 
-    public static Disguise getCustomDisguise(String disguiseName)
-    {
+    public static Disguise getCustomDisguise(String disguiseName) {
         Map.Entry<String, Disguise> entry = DisguiseConfig.getCustomDisguise(disguiseName);
 
         if (entry == null)
-        {
             return null;
-        }
 
         return entry.getValue();
     }
 
-    public static Disguise constructDisguise(Entity entity)
-    {
+    public static Disguise constructDisguise(Entity entity) {
         return constructDisguise(entity, true, true, true);
     }
 
-    public static Disguise constructDisguise(Entity entity, boolean doEquipment, boolean doSneak, boolean doSprint)
-    {
+    public static Disguise constructDisguise(Entity entity, boolean doEquipment, boolean doSneak, boolean doSprint) {
         DisguiseType disguiseType = DisguiseType.getType(entity);
         Disguise disguise;
 
-        if (disguiseType.isMisc())
-        {
+        if (disguiseType.isMisc()) {
             disguise = new MiscDisguise(disguiseType);
-        }
-        else if (disguiseType.isMob())
-        {
+        } else if (disguiseType.isMob()) {
             disguise = new MobDisguise(disguiseType);
-        }
-        else
-        {
+        } else {
             disguise = new PlayerDisguise(entity.getName());
         }
 
         FlagWatcher watcher = disguise.getWatcher();
 
-        if (entity instanceof LivingEntity)
-        {
-            for (PotionEffect effect : ((LivingEntity) entity).getActivePotionEffects())
-            {
+        if (entity instanceof LivingEntity) {
+            for (PotionEffect effect : ((LivingEntity) entity).getActivePotionEffects()) {
                 ((LivingWatcher) watcher).addPotionEffect(effect.getType());
 
-                if (effect.getType() == PotionEffectType.INVISIBILITY)
-                {
+                if (effect.getType() == PotionEffectType.INVISIBILITY) {
                     watcher.setInvisible(true);
-                }
-                else if (effect.getType() == PotionEffectType.GLOWING)
-                {
+                } else if (effect.getType() == PotionEffectType.GLOWING) {
                     watcher.setGlowing(true);
                 }
             }
         }
 
-        if (entity.getFireTicks() > 0)
-        {
+        if (entity.getFireTicks() > 0) {
             watcher.setBurning(true);
         }
 
-        if (doEquipment && entity instanceof LivingEntity)
-        {
+        if (doEquipment && entity instanceof LivingEntity) {
             EntityEquipment equip = ((LivingEntity) entity).getEquipment();
 
             watcher.setArmor(equip.getArmorContents());
             watcher.setItemInMainHand(equip.getItemInMainHand());
 
-            if (disguiseType.getEntityType() == EntityType.HORSE)
-            {
+            if (disguiseType.getEntityType() == EntityType.HORSE) {
                 Horse horse = (Horse) entity;
                 HorseInventory horseInventory = horse.getInventory();
                 ItemStack saddle = horseInventory.getSaddle();
 
-                if (saddle != null && saddle.getType() == Material.SADDLE)
-                {
+                if (saddle != null && saddle.getType() == Material.SADDLE) {
                     ((AbstractHorseWatcher) watcher).setSaddled(true);
                 }
 
                 if (watcher instanceof HorseWatcher)
-                {
                     ((HorseWatcher) watcher).setHorseArmor(horseInventory.getArmor());
-                }
             }
         }
-        for (Method method : entity.getClass().getMethods())
-        {
+        for (Method method : entity.getClass().getMethods()) {
             if ((doSneak || !method.getName().equals("setSneaking")) &&
                     (doSprint || !method.getName().equals("setSprinting")) && method.getParameterTypes().length == 0 &&
-                    method.getReturnType() != void.class)
-            {
+                    method.getReturnType() != void.class) {
                 Class methodReturn = method.getReturnType();
 
-                if (methodReturn == float.class || methodReturn == Float.class || methodReturn == Double.class)
-                {
+                if (methodReturn == float.class || methodReturn == Float.class || methodReturn == Double.class) {
                     methodReturn = double.class;
                 }
 
                 int firstCapitalMethod = firstCapital(method.getName());
 
-                if (firstCapitalMethod > 0)
-                {
-                    for (Method watcherMethod : watcher.getClass().getMethods())
-                    {
+                if (firstCapitalMethod > 0) {
+                    for (Method watcherMethod : watcher.getClass().getMethods()) {
                         if (!watcherMethod.getName().startsWith("get") && watcherMethod.getReturnType() == void.class &&
-                                watcherMethod.getParameterTypes().length == 1)
-                        {
+                                watcherMethod.getParameterTypes().length == 1) {
                             int firstCapitalWatcher = firstCapital(watcherMethod.getName());
 
                             if (firstCapitalWatcher > 0 && method.getName().substring(firstCapitalMethod)
-                                    .equalsIgnoreCase(watcherMethod.getName().substring(firstCapitalWatcher)))
-                            {
+                                    .equalsIgnoreCase(watcherMethod.getName().substring(firstCapitalWatcher))) {
                                 Class methodParam = watcherMethod.getParameterTypes()[0];
 
                                 if (methodParam == float.class || methodParam == Float.class ||
-                                        methodParam == Double.class)
-                                {
+                                        methodParam == Double.class) {
                                     methodParam = double.class;
-                                }
-                                else if (methodParam == AnimalColor.class)
-                                {
+                                } else if (methodParam == AnimalColor.class) {
                                     methodParam = DyeColor.class;
                                 }
-                                if (methodReturn == methodParam)
-                                {
-                                    try
-                                    {
+                                if (methodReturn == methodParam) {
+                                    try {
                                         Object value = method.invoke(entity);
-                                        if (value != null)
-                                        {
+                                        if (value != null) {
                                             Class toCast = watcherMethod.getParameterTypes()[0];
-                                            if (!(toCast.isInstance(value)))
-                                            {
-                                                if (toCast == float.class)
-                                                {
-                                                    if (!(value instanceof Float))
-                                                    {
+                                            if (!(toCast.isInstance(value))) {
+                                                if (toCast == float.class) {
+                                                    if (!(value instanceof Float)) {
                                                         double d = (Double) value;
                                                         value = (float) d;
                                                     }
-                                                }
-                                                else if (toCast == double.class)
-                                                {
-                                                    if (!(value instanceof Double))
-                                                    {
+                                                } else if (toCast == double.class) {
+                                                    if (!(value instanceof Double)) {
                                                         float d = (Float) value;
                                                         value = (double) d;
                                                     }
-                                                }
-                                                else if (toCast == AnimalColor.class)
-                                                {
+                                                } else if (toCast == AnimalColor.class) {
                                                     value = AnimalColor.valueOf(((DyeColor) value).name());
                                                 }
                                             }
                                             if (value instanceof Boolean && !(Boolean) value &&
-                                                    watcherMethod.getDeclaringClass() == FlagWatcher.class)
-                                            {
+                                                    watcherMethod.getDeclaringClass() == FlagWatcher.class) {
                                                 continue;
                                             }
                                         }
                                         watcherMethod.invoke(watcher, value);
                                     }
-                                    catch (Exception ex)
-                                    {
+                                    catch (Exception ex) {
                                         ex.printStackTrace();
                                     }
                                 }
@@ -202,22 +156,18 @@ public class DisguiseAPI
         return disguise;
     }
 
-    public static void disguiseEntity(Entity entity, Disguise disguise)
-    {
+    public static void disguiseEntity(Entity entity, Disguise disguise) {
         // If they are trying to disguise a null entity or use a null disguise
         // Just return.
-        if (entity == null || disguise == null)
-        {
+        if (entity == null || disguise == null) {
             return;
         }
 
         // The event wasn't cancelled.
         // If the disguise entity isn't the same as the one we are disguising
-        if (disguise.getEntity() != entity)
-        {
+        if (disguise.getEntity() != entity) {
             // If the disguise entity actually exists
-            if (disguise.getEntity() != null)
-            {
+            if (disguise.getEntity() != null) {
                 // Clone the disguise
                 disguise = disguise.clone();
             }
@@ -227,30 +177,22 @@ public class DisguiseAPI
 
         // They prefer to have the opposite of whatever the view disguises option is
         if (hasSelfDisguisePreference(entity) && disguise.isSelfDisguiseVisible() == DisguiseConfig.isViewDisguises())
-        {
             disguise.setViewSelfDisguise(!disguise.isSelfDisguiseVisible());
-        }
 
         disguise.startDisguise();
     }
 
-    public static void disguiseIgnorePlayers(Entity entity, Disguise disguise, Collection playersToNotSeeDisguise)
-    {
-        if (disguise.getEntity() != null)
-        {
+    public static void disguiseIgnorePlayers(Entity entity, Disguise disguise, Collection playersToNotSeeDisguise) {
+        if (disguise.getEntity() != null) {
             disguise = disguise.clone();
         }
 
         ((TargetedDisguise) disguise).setDisguiseTarget(TargetType.SHOW_TO_EVERYONE_BUT_THESE_PLAYERS);
 
-        for (Object obj : playersToNotSeeDisguise)
-        {
-            if (obj instanceof String)
-            {
+        for (Object obj : playersToNotSeeDisguise) {
+            if (obj instanceof String) {
                 ((TargetedDisguise) disguise).addPlayer((String) obj);
-            }
-            else if (obj instanceof Player)
-            {
+            } else if (obj instanceof Player) {
                 ((TargetedDisguise) disguise).addPlayer(((Player) obj).getName());
             }
         }
@@ -259,18 +201,15 @@ public class DisguiseAPI
     }
 
     @Deprecated
-    public static void disguiseIgnorePlayers(Entity entity, Disguise disguise, List<String> playersToNotSeeDisguise)
-    {
+    public static void disguiseIgnorePlayers(Entity entity, Disguise disguise, List<String> playersToNotSeeDisguise) {
         disguiseIgnorePlayers(entity, disguise, (Collection) playersToNotSeeDisguise);
     }
 
-    public static void disguiseIgnorePlayers(Entity entity, Disguise disguise, Player... playersToNotSeeDisguise)
-    {
+    public static void disguiseIgnorePlayers(Entity entity, Disguise disguise, Player... playersToNotSeeDisguise) {
         disguiseIgnorePlayers(entity, disguise, (Collection) Arrays.asList(playersToNotSeeDisguise));
     }
 
-    public static void disguiseIgnorePlayers(Entity entity, Disguise disguise, String... playersToNotSeeDisguise)
-    {
+    public static void disguiseIgnorePlayers(Entity entity, Disguise disguise, String... playersToNotSeeDisguise) {
         disguiseIgnorePlayers(entity, disguise, (Collection) Arrays.asList(playersToNotSeeDisguise));
     }
 
@@ -280,15 +219,12 @@ public class DisguiseAPI
      * @param disguise
      * @return
      */
-    public static int disguiseNextEntity(Disguise disguise)
-    {
-        if (disguise == null)
-        {
+    public static int disguiseNextEntity(Disguise disguise) {
+        if (disguise == null) {
             return -1;
         }
 
-        if (disguise.getEntity() != null || DisguiseUtilities.getDisguises().containsValue(disguise))
-        {
+        if (disguise.getEntity() != null || DisguiseUtilities.getDisguises().containsValue(disguise)) {
             disguise = disguise.clone();
         }
 
@@ -304,41 +240,32 @@ public class DisguiseAPI
      * @param entity
      * @param disguise
      */
-    public static void disguiseToAll(Entity entity, Disguise disguise)
-    {
-        if (disguise.getEntity() != null)
-        {
+    public static void disguiseToAll(Entity entity, Disguise disguise) {
+        if (disguise.getEntity() != null) {
             disguise = disguise.clone();
         }
 
         // You called the disguiseToAll method foolish mortal! Prepare to have your custom settings wiped!!!
         ((TargetedDisguise) disguise).setDisguiseTarget(TargetType.SHOW_TO_EVERYONE_BUT_THESE_PLAYERS);
 
-        for (String observer : ((TargetedDisguise) disguise).getObservers())
-        {
+        for (String observer : ((TargetedDisguise) disguise).getObservers()) {
             ((TargetedDisguise) disguise).removePlayer(observer);
         }
 
         disguiseEntity(entity, disguise);
     }
 
-    public static void disguiseToPlayers(Entity entity, Disguise disguise, Collection playersToViewDisguise)
-    {
-        if (disguise.getEntity() != null)
-        {
+    public static void disguiseToPlayers(Entity entity, Disguise disguise, Collection playersToViewDisguise) {
+        if (disguise.getEntity() != null) {
             disguise = disguise.clone();
         }
 
         ((TargetedDisguise) disguise).setDisguiseTarget(TargetType.HIDE_DISGUISE_TO_EVERYONE_BUT_THESE_PLAYERS);
 
-        for (Object obj : playersToViewDisguise)
-        {
-            if (obj instanceof String)
-            {
+        for (Object obj : playersToViewDisguise) {
+            if (obj instanceof String) {
                 ((TargetedDisguise) disguise).addPlayer((String) obj);
-            }
-            else if (obj instanceof Player)
-            {
+            } else if (obj instanceof Player) {
                 ((TargetedDisguise) disguise).addPlayer(((Player) obj).getName());
             }
         }
@@ -347,27 +274,21 @@ public class DisguiseAPI
     }
 
     @Deprecated
-    public static void disguiseToPlayers(Entity entity, Disguise disguise, List<String> playersToViewDisguise)
-    {
+    public static void disguiseToPlayers(Entity entity, Disguise disguise, List<String> playersToViewDisguise) {
         disguiseToPlayers(entity, disguise, (Collection) playersToViewDisguise);
     }
 
-    public static void disguiseToPlayers(Entity entity, Disguise disguise, Player... playersToViewDisguise)
-    {
+    public static void disguiseToPlayers(Entity entity, Disguise disguise, Player... playersToViewDisguise) {
         disguiseToPlayers(entity, disguise, (Collection) Arrays.asList(playersToViewDisguise));
     }
 
-    public static void disguiseToPlayers(Entity entity, Disguise disguise, String... playersToViewDisguise)
-    {
+    public static void disguiseToPlayers(Entity entity, Disguise disguise, String... playersToViewDisguise) {
         disguiseToPlayers(entity, disguise, (Collection) Arrays.asList(playersToViewDisguise));
     }
 
-    private static int firstCapital(String str)
-    {
-        for (int i = 0; i < str.length(); i++)
-        {
-            if (Character.isUpperCase(str.charAt(i)))
-            {
+    private static int firstCapital(String str) {
+        for (int i = 0; i < str.length(); i++) {
+            if (Character.isUpperCase(str.charAt(i))) {
                 return i;
             }
         }
@@ -381,24 +302,12 @@ public class DisguiseAPI
      * @param disguised
      * @return
      */
-    public static Disguise getDisguise(Entity disguised)
-    {
-        if (disguised == null)
-        {
+    public static Disguise getDisguise(Entity disguised) {
+        if (disguised == null) {
             return null;
         }
 
         return DisguiseUtilities.getMainDisguise(disguised.getUniqueId());
-    }
-
-    public static void disableDisguises()
-    {
-        DisallowedDisguises.disabled = true;
-    }
-
-    public static void enableDisguises()
-    {
-        DisallowedDisguises.disabled = false;
     }
 
     /**
@@ -408,10 +317,8 @@ public class DisguiseAPI
      * @param disguised
      * @return
      */
-    public static Disguise getDisguise(Player observer, Entity disguised)
-    {
-        if (disguised == null || observer == null)
-        {
+    public static Disguise getDisguise(Player observer, Entity disguised) {
+        if (disguised == null || observer == null) {
             return null;
         }
 
@@ -424,18 +331,15 @@ public class DisguiseAPI
      * @param disguised
      * @return
      */
-    public static Disguise[] getDisguises(Entity disguised)
-    {
-        if (disguised == null)
-        {
+    public static Disguise[] getDisguises(Entity disguised) {
+        if (disguised == null) {
             return null;
         }
 
         return DisguiseUtilities.getDisguises(disguised.getUniqueId());
     }
 
-    public static int getSelfDisguiseId()
-    {
+    public static int getSelfDisguiseId() {
         return selfDisguiseId;
     }
 
@@ -445,8 +349,7 @@ public class DisguiseAPI
      * @param disguised
      * @return
      */
-    public static boolean isDisguised(Entity disguised)
-    {
+    public static boolean isDisguised(Entity disguised) {
         return getDisguise(disguised) != null;
     }
 
@@ -457,18 +360,15 @@ public class DisguiseAPI
      * @param disguised
      * @return
      */
-    public static boolean isDisguised(Player observer, Entity disguised)
-    {
+    public static boolean isDisguised(Player observer, Entity disguised) {
         return getDisguise(observer, disguised) != null;
     }
 
-    public static boolean isDisguiseInUse(Disguise disguise)
-    {
+    public static boolean isDisguiseInUse(Disguise disguise) {
         return disguise.isDisguiseInUse();
     }
 
-    public static boolean isSelfDisguised(Player player)
-    {
+    public static boolean isSelfDisguised(Player player) {
         return DisguiseUtilities.getSelfDisguised().contains(player.getUniqueId());
     }
 
@@ -478,13 +378,11 @@ public class DisguiseAPI
      * @param entity
      * @return
      */
-    public static boolean isViewSelfToggled(Entity entity)
-    {
+    public static boolean isViewSelfToggled(Entity entity) {
         return hasSelfDisguisePreference(entity) != DisguiseConfig.isViewDisguises();
     }
 
-    public static boolean hasSelfDisguisePreference(Entity entity)
-    {
+    public static boolean hasSelfDisguisePreference(Entity entity) {
         return Disguise.getViewSelf().contains(entity.getUniqueId());
     }
 
@@ -495,12 +393,10 @@ public class DisguiseAPI
      *
      * @param entity
      */
-    public static void undisguiseToAll(Entity entity)
-    {
+    public static void undisguiseToAll(Entity entity) {
         Disguise[] disguises = getDisguises(entity);
 
-        for (Disguise disguise : disguises)
-        {
+        for (Disguise disguise : disguises) {
             disguise.removeDisguise();
         }
     }
@@ -511,32 +407,24 @@ public class DisguiseAPI
      * @param entity
      * @param canSeeSelfDisguises
      */
-    public static void setViewDisguiseToggled(Entity entity, boolean canSeeSelfDisguises)
-    {
-        if (isDisguised(entity))
-        {
+    public static void setViewDisguiseToggled(Entity entity, boolean canSeeSelfDisguises) {
+        if (isDisguised(entity)) {
             Disguise[] disguises = getDisguises(entity);
 
-            for (Disguise disguise : disguises)
-            {
+            for (Disguise disguise : disguises) {
                 disguise.setViewSelfDisguise(canSeeSelfDisguises);
             }
         }
 
-        if (!canSeeSelfDisguises == DisguiseConfig.isViewDisguises())
-        {
-            if (!hasSelfDisguisePreference(entity))
-            {
+        if (!canSeeSelfDisguises == DisguiseConfig.isViewDisguises()) {
+            if (!hasSelfDisguisePreference(entity)) {
                 Disguise.getViewSelf().add(entity.getUniqueId());
             }
-        }
-        else
-        {
+        } else {
             Disguise.getViewSelf().remove(entity.getUniqueId());
         }
     }
 
-    private DisguiseAPI()
-    {
+    private DisguiseAPI() {
     }
 }
