@@ -54,8 +54,6 @@ public class LibsDisguises extends JavaPlugin {
 
         registerCommand("disguise", new DisguiseCommand());
         registerCommand("undisguise", new UndisguiseCommand());
-        registerCommand("disguiseplayer", new DisguisePlayerCommand());
-        registerCommand("undisguiseplayer", new UndisguisePlayerCommand());
         registerCommand("undisguiseentity", new UndisguiseEntityCommand());
         registerCommand("disguiseentity", new DisguiseEntityCommand());
         registerCommand("disguiseradius", new DisguiseRadiusCommand(getConfig().getInt("DisguiseRadiusMax")));
