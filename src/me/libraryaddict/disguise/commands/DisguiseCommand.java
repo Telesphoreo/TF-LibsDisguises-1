@@ -83,9 +83,7 @@ public class DisguiseCommand extends DisguiseBaseCommand implements TabCompleter
 
             if (DisallowedDisguises.isAllowed(disguise))
             {
-
-                DisguiseAPI.disguiseToAll((Player) sender, disguise);
-
+                disguise.startDisguise();
             }
             else
             {
@@ -98,8 +96,6 @@ public class DisguiseCommand extends DisguiseBaseCommand implements TabCompleter
             sender.sendMessage(ChatColor.RED + "Disguises are disabled.");
             return true;
         }
-
-        disguise.startDisguise();
 
         if (disguise.isDisguiseInUse()) {
             sender.sendMessage(LibsMsg.DISGUISED.get(disguise.getType().toReadable()));
